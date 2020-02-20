@@ -370,7 +370,69 @@ summary {
 </div>
 
 
+<div id="problem-1" class="section level2">
+<h2>Problem 1</h2>
+<div id="section" class="section level4">
+<h4>1)</h4>
+<p>Enter in data</p>
+<pre class="r"><code>cancer = tibble(
+  age = rep(c(25, 35, 45, 55, 65, 75), 2),
+  alc_cons = c(rep(&quot;0-79&quot;, 6), rep(&quot;80+&quot;, 6)),
+  case = c(0, 5, 21, 34, 36, 8, 1, 4, 25, 42, 19, 5),
+  ctrl = c(106, 164, 138, 139, 88, 31, 9, 26, 29, 27, 18, 0)
+)</code></pre>
+<p>Model</p>
+<pre class="r"><code># Response matrix
+resp = cancer %&gt;% 
+  select(case, ctrl) %&gt;% 
+  as.matrix()
 
+# Model
+logit_cancer = glm(resp ~ age + alc_cons, family = binomial(link = 'logit'), data = cancer)
+
+logit_cancer$coefficients[1]</code></pre>
+<pre><code>## (Intercept) 
+##   -5.023449</code></pre>
+<pre class="r"><code>logit_cancer %&gt;% 
+  broom::tidy() %&gt;% 
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">term</th>
+<th align="right">estimate</th>
+<th align="right">std.error</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="right">-5.0234488</td>
+<td align="right">0.4182235</td>
+<td align="right">-12.011398</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">age</td>
+<td align="right">0.0615787</td>
+<td align="right">0.0072907</td>
+<td align="right">8.446252</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">alc_cons80+</td>
+<td align="right">1.7799995</td>
+<td align="right">0.1870860</td>
+<td align="right">9.514337</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+<p>From the logit model, the log odds of esophageal cancer for someone with daily alcohol consumption of 0-79g that is age 0 is -5.0234488. The log odds ratio of esophageal cancer comparing someone with daily alcohol consumption 80+g to 0-79g is 1.7799995, holding age constant. And the log odds ratio of esophageal cancer associated with a one year increase in age is 0.0615787, holding daily alcohol consumption constant. From these results, age and is positively associated with esophageal cancer and a higher daily alcohol consumption (80+g) is also associated with esophageal cancer.</p>
+</div>
+</div>
 
 
 
