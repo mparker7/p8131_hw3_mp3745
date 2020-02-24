@@ -50,12 +50,44 @@ resp = cancer %>%
 # Model
 logit_cancer = glm(resp ~ age + alc_cons, family = binomial(link = 'logit'), data = cancer)
 
-logit_cancer$coefficients[1]
-
 logit_cancer %>% 
   broom::tidy() %>% 
   knitr::kable()
 ```
 
 From the logit model, the log odds of esophageal cancer for someone with daily alcohol consumption of 0-79g that is age 0 is `r logit_cancer$coefficients[1]`. The log odds ratio of esophageal cancer comparing someone with daily alcohol consumption 80+g to 0-79g is `r logit_cancer$coefficients[3]`, holding age constant. And the log odds ratio of esophageal cancer associated with a one year increase in age is `r logit_cancer$coefficients[2]`, holding daily alcohol consumption constant. From these results, age and is positively associated with esophageal cancer and a higher daily alcohol consumption (80+g) is also associated with esophageal cancer.
+
+
+
+## Problem 2
+
+#### 1)
+
+Enter in data
+```{r}
+germ = tibble(
+  species = c("oa_75", "oa_75", "oa_73", "oa_73"),
+  root = c("bean", "cucumber", "bean", "cucumber"),
+  germinated = c(10 + 23 + 23 + 26 + 17, 5 + 53 + 55 + 32 + 46 + 10, 8 + 10 + 8 + 23 + 0, 3 + 22 + 15 + 32 + 3),
+  total = c(39 + 62 + 81 + 51 + 39, 6 + 74 + 72 + 51 + 79 + 13, 16 + 30 + 28 + 45 + 4, 12 + 41 + 30 + 51 + 7),
+  failed = total - germinated
+)
+
+# response
+germ_resp = germ %>% 
+  select(germinated, failed) %>% 
+  as.matrix()
+```
+
+Fit model
+```{r}
+germ_logit = glm(germ_resp ~ species + root, family = binomial(link = 'logit'), data = germ)
+
+germ_logit %>% 
+  broom::tidy() %>% 
+  knitr::kable()
+```
+
+From the logit model, the log odds of germinating for an O. aegyptiaca 73 seed with bean root extract is `r germ_logit$coefficients[1]`. The log odds ratio of germinating comparing an O. aegyptiaca 75 seed with an O. aegyptiaca 73 seed is `r germ_logit$coefficients[2]`, holding root extract media constant. The log odds ratio of germinating comparing a seed with cucumber root extract to bean root extract is `r germ_logit$coefficients[3]`, holding seed type constant. From these results, root extract medium is strongly associated with germinating and O. aegyptiaca 75 is also associated with germinating.
+
 

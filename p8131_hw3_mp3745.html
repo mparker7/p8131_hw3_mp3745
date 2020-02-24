@@ -12,7 +12,7 @@
 
 <meta name="author" content="Matthew Parker" />
 
-<meta name="date" content="2020-02-20" />
+<meta name="date" content="2020-02-24" />
 
 <title>p8105_hw3_mp3745</title>
 
@@ -365,7 +365,7 @@ summary {
 
 <h1 class="title toc-ignore">p8105_hw3_mp3745</h1>
 <h4 class="author">Matthew Parker</h4>
-<h4 class="date">2020-02-20</h4>
+<h4 class="date">2020-02-24</h4>
 
 </div>
 
@@ -390,10 +390,7 @@ resp = cancer %&gt;%
 # Model
 logit_cancer = glm(resp ~ age + alc_cons, family = binomial(link = 'logit'), data = cancer)
 
-logit_cancer$coefficients[1]</code></pre>
-<pre><code>## (Intercept) 
-##   -5.023449</code></pre>
-<pre class="r"><code>logit_cancer %&gt;% 
+logit_cancer %&gt;% 
   broom::tidy() %&gt;% 
   knitr::kable()</code></pre>
 <table>
@@ -431,6 +428,66 @@ logit_cancer$coefficients[1]</code></pre>
 </tbody>
 </table>
 <p>From the logit model, the log odds of esophageal cancer for someone with daily alcohol consumption of 0-79g that is age 0 is -5.0234488. The log odds ratio of esophageal cancer comparing someone with daily alcohol consumption 80+g to 0-79g is 1.7799995, holding age constant. And the log odds ratio of esophageal cancer associated with a one year increase in age is 0.0615787, holding daily alcohol consumption constant. From these results, age and is positively associated with esophageal cancer and a higher daily alcohol consumption (80+g) is also associated with esophageal cancer.</p>
+</div>
+</div>
+<div id="problem-2" class="section level2">
+<h2>Problem 2</h2>
+<div id="section-1" class="section level4">
+<h4>1)</h4>
+<p>Enter in data</p>
+<pre class="r"><code>germ = tibble(
+  species = c(&quot;oa_75&quot;, &quot;oa_75&quot;, &quot;oa_73&quot;, &quot;oa_73&quot;),
+  root = c(&quot;bean&quot;, &quot;cucumber&quot;, &quot;bean&quot;, &quot;cucumber&quot;),
+  germinated = c(10 + 23 + 23 + 26 + 17, 5 + 53 + 55 + 32 + 46 + 10, 8 + 10 + 8 + 23 + 0, 3 + 22 + 15 + 32 + 3),
+  total = c(39 + 62 + 81 + 51 + 39, 6 + 74 + 72 + 51 + 79 + 13, 16 + 30 + 28 + 45 + 4, 12 + 41 + 30 + 51 + 7),
+  failed = total - germinated
+)
+
+# response
+germ_resp = germ %&gt;% 
+  select(germinated, failed) %&gt;% 
+  as.matrix()</code></pre>
+<p>Fit model</p>
+<pre class="r"><code>germ_logit = glm(germ_resp ~ species + root, family = binomial(link = 'logit'), data = germ)
+
+germ_logit %&gt;% 
+  broom::tidy() %&gt;% 
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">term</th>
+<th align="right">estimate</th>
+<th align="right">std.error</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="right">-0.7004832</td>
+<td align="right">0.1507213</td>
+<td align="right">-4.647540</td>
+<td align="right">0.0000034</td>
+</tr>
+<tr class="even">
+<td align="left">speciesoa_75</td>
+<td align="right">0.2704511</td>
+<td align="right">0.1547056</td>
+<td align="right">1.748166</td>
+<td align="right">0.0804352</td>
+</tr>
+<tr class="odd">
+<td align="left">rootcucumber</td>
+<td align="right">1.0647498</td>
+<td align="right">0.1442141</td>
+<td align="right">7.383118</td>
+<td align="right">0.0000000</td>
+</tr>
+</tbody>
+</table>
+<p>From the logit model, the log odds of germinating for an O. aegyptiaca 73 seed with bean root extract is -0.7004832. The log odds ratio of germinating comparing an O. aegyptiaca 75 seed with an O. aegyptiaca 73 seed is 0.2704511, holding root extract media constant. The log odds ratio of germinating comparing a seed with cucumber root extract to bean root extract is 1.0647498, holding seed type constant. From these results, root extract medium is strongly associated with germinating and O. aegyptiaca 75 is also associated with germinating.</p>
 </div>
 </div>
 
