@@ -91,3 +91,52 @@ germ_logit %>%
 From the logit model, the log odds of germinating for an O. aegyptiaca 73 seed with bean root extract is `r germ_logit$coefficients[1]`. The log odds ratio of germinating comparing an O. aegyptiaca 75 seed with an O. aegyptiaca 73 seed is `r germ_logit$coefficients[2]`, holding root extract media constant. The log odds ratio of germinating comparing a seed with cucumber root extract to bean root extract is `r germ_logit$coefficients[3]`, holding seed type constant. From these results, root extract medium is strongly associated with germinating and O. aegyptiaca 75 is also associated with germinating.
 
 
+#### 2)
+
+Check for lack of fit
+```{r}
+pval = 1 - pchisq(germ_logit$deviance, 4 - 3)
+```
+
+Since p-value = `r pval` < 0.05, we have sufficient evidence to reject the null hypothesis that the model fits the data well.
+
+
+Check for overdispersion
+```{r}
+res = residuals(germ_logit, type = 'pearson')
+
+resid_points = tibble(
+  x = qnorm((4 + 1:4 + 0.5)/(2 * 4 + 1.125)),
+  y = sort(abs(res))
+)
+
+resid_points %>% 
+  ggplot(aes(x = x, y = y)) +
+  geom_point() + 
+  geom_abline(slope = 1) + 
+  scale_x_continuous(limits = c(0, 2)) +
+  scale_y_continuous(limits = c(0, 2)) +
+  labs(
+    x = "Expected Half-Normal Order Stats",
+    y = "Ordered Abs Pearson Residuals"
+  )
+```
+
+
+Based on above plot, it appears they may be a liner deviation from the reference line, which indicates possible overdispersion.
+
+Calculate estimate of dispersion parameter
+```{r}
+g_stat = sum(residuals(germ_logit, type = 'pearson')^2)
+
+phi = g_stat/(4 - 3)
+```
+
+The estimated dispersion parameter is `r phi`
+
+Update model with dispersion parameter
+```{r}
+summary(germ_logit, dispersion = phi)
+```
+
+In the updated model, our estimates and their interpretations are still valid. In the updated model, the std. error has been inflated by `r phi`. This has caused the z value and Pr(>|z|) to change. The coefficient for the term comparing species of seed in the model has now become insignificant, indicating there may not be a significant association between seed species and germinating when accounting for root extract media.
