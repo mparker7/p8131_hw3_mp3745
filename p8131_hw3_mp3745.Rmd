@@ -66,10 +66,10 @@ From the logit model, the log odds of esophageal cancer for someone with daily a
 Enter in data
 ```{r}
 germ = tibble(
-  species = c("oa_75", "oa_75", "oa_73", "oa_73"),
-  root = c("bean", "cucumber", "bean", "cucumber"),
-  germinated = c(10 + 23 + 23 + 26 + 17, 5 + 53 + 55 + 32 + 46 + 10, 8 + 10 + 8 + 23 + 0, 3 + 22 + 15 + 32 + 3),
-  total = c(39 + 62 + 81 + 51 + 39, 6 + 74 + 72 + 51 + 79 + 13, 16 + 30 + 28 + 45 + 4, 12 + 41 + 30 + 51 + 7),
+  species = c(rep("oa_75", 11), rep("oa_73", 10)),
+  root = c(rep("bean", 5), rep("cucumber", 6), rep("bean", 5), rep("cucumber", 5)),
+  germinated = c(10, 23, 23, 26, 17, 5, 53, 55, 32, 46, 10, 8, 10, 8, 23, 0, 3, 22, 15, 32, 3),
+  total = c(39, 62, 81, 51, 39, 6, 74, 72, 51, 79, 13, 16, 30, 28, 45, 4, 12, 41, 30, 51, 7),
   failed = total - germinated
 )
 
@@ -88,14 +88,14 @@ germ_logit %>%
   knitr::kable()
 ```
 
-From the logit model, the log odds of germinating for an O. aegyptiaca 73 seed with bean root extract is `r germ_logit$coefficients[1]`. The log odds ratio of germinating comparing an O. aegyptiaca 75 seed with an O. aegyptiaca 73 seed is `r germ_logit$coefficients[2]`, holding root extract media constant. The log odds ratio of germinating comparing a seed with cucumber root extract to bean root extract is `r germ_logit$coefficients[3]`, holding seed type constant. From these results, root extract medium is strongly associated with germinating and O. aegyptiaca 75 is also associated with germinating.
+From the logit model, the log odds of germinating for an O. aegyptiaca 73 seed with bean root extract is `r germ_logit$coefficients[1]`. The log odds ratio of germinating comparing an O. aegyptiaca 75 seed with an O. aegyptiaca 73 seed is `r germ_logit$coefficients[2]`, holding root extract media constant. The log odds ratio of germinating comparing a seed with cucumber root extract to bean root extract is `r germ_logit$coefficients[3]`, holding seed type constant. From these results, root extract medium is strongly associated with germinating. O. aegyptiaca 75 may also be associated with germinating, although its p-value is greater than 0.05, indicating the term is insignificant, accounting for root extract media.
 
 
 #### 2)
 
 Check for lack of fit
 ```{r}
-pval = 1 - pchisq(germ_logit$deviance, 4 - 3)
+pval = 1 - pchisq(germ_logit$deviance, 21 - 3)
 ```
 
 Since p-value = `r pval` < 0.05, we have sufficient evidence to reject the null hypothesis that the model fits the data well.
@@ -106,7 +106,7 @@ Check for overdispersion
 res = residuals(germ_logit, type = 'pearson')
 
 resid_points = tibble(
-  x = qnorm((4 + 1:4 + 0.5)/(2 * 4 + 1.125)),
+  x = qnorm((21 + 1:21 + 0.5)/(2 * 21 + 1.125)),
   y = sort(abs(res))
 )
 
@@ -114,8 +114,8 @@ resid_points %>%
   ggplot(aes(x = x, y = y)) +
   geom_point() + 
   geom_abline(slope = 1) + 
-  scale_x_continuous(limits = c(0, 2)) +
-  scale_y_continuous(limits = c(0, 2)) +
+  scale_x_continuous(limits = c(0, 3)) +
+  scale_y_continuous(limits = c(0, 3)) +
   labs(
     x = "Expected Half-Normal Order Stats",
     y = "Ordered Abs Pearson Residuals"
@@ -129,14 +129,33 @@ Calculate estimate of dispersion parameter
 ```{r}
 g_stat = sum(residuals(germ_logit, type = 'pearson')^2)
 
-phi = g_stat/(4 - 3)
+phi = g_stat/(21 - 3)
 ```
 
 The estimated dispersion parameter is `r phi`
 
-Update model with dispersion parameter
+Update model with dispersion parameter and check plot again
 ```{r}
 summary(germ_logit, dispersion = phi)
+
+resid_points %>% 
+  ggplot(aes(x = x, y = y)) +
+  geom_point() + 
+  geom_abline(slope = 1) + 
+  geom_abline(slope = sqrt(phi), color = 'red') + 
+  scale_x_continuous(limits = c(0, 3)) +
+  scale_y_continuous(limits = c(0, 3)) +
+  labs(
+    x = "Expected Half-Normal Order Stats",
+    y = "Ordered Abs Pearson Residuals"
+  )
 ```
 
-In the updated model, our estimates and their interpretations are still valid. In the updated model, the std. error has been inflated by `r phi`. This has caused the z value and Pr(>|z|) to change. The coefficient for the term comparing species of seed in the model has now become insignificant, indicating there may not be a significant association between seed species and germinating when accounting for root extract media.
+From the plot with a line with slope equal to the square root of the dispersion parameter (red line), we can see this line fits the data much better than our original line.
+
+In the updated model, our estimates and their interpretations are still valid. In the updated model, the std. error has been inflated by `r phi`. This has caused the z value and Pr(>|z|) to change. The coefficient for the term comparing species of seed in the model has now clearly become insignificant, indicating there may not be a significant association between seed species and germinating when accounting for root extract media.
+
+
+#### 3)
+
+A possible source of the overdispersion is correlation within each group of seeds. Because the seeds are germinated in groups, there may be different external factors (i.e. different temperature) for different groups that affect the rate of germination.
